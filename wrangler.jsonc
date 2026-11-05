@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-neon-app",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // S3 源站在 Supabase ap-southeast-2（悉尼）；
+  // Smart Placement 把执行挪到靠近源站的 colo，降低上传/预签名延迟
+  "placement": {
+    "mode": "smart"
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "SUPABASE_S3_REGION": "ap-southeast-2",
+    "SUPABASE_S3_ENDPOINT": "https://krgaimtoeuorzifkahsk.storage.supabase.co/storage/v1/s3"
+  }
+  // 机密（SUPABASE_S3_ACCESS_KEY_ID / SUPABASE_S3_SECRET_ACCESS_KEY）用 `wrangler secret put` 设置
+}

@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.neon
+
+# cloudflare / opennext 构建产物
+/.open-next/
+/.wrangler/
+.worker-assets/
+
+# 本地日志
+dev*.log
+wr-stdout.log
+*.log
+
+# AI 工具本地配置（skills / MCP / 截图缓存等）
+/.agents/
+/.claude/
+/.trae/
+.mcp.json
+skills-lock.json
