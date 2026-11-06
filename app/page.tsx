@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// 音频资源管理已并入 /files 的标签页，根路径重定向过去
+// 根路径重定向到首页（用户管理标签页）
 export default function Home() {
-  redirect("/files?tab=audio");
+  redirect("/home?tab=users");
 }

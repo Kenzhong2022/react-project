@@ -34,6 +34,7 @@ type FileItem = {
   size: number;
   lastModified: string | null;
   url: string;
+  downloadUrl: string;
 };
 
 // 设备唯一标志：与音频上传同一套标识体系
@@ -105,6 +106,16 @@ async function multipartUpload(
   }
 }
 
+// Office 系列交给微软 Office Online Viewer 渲染（要求文件链接公网可访问）
+const OFFICE_MIME = new Set([
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+]);
+
 // 预览器：按内容类型选择渲染方式；文本类抓取内容展示
 function PreviewContent({ item }: { item: FileItem }) {
   const [text, setText] = useState<string | null>(null);
@@ -134,14 +145,31 @@ function PreviewContent({ item }: { item: FileItem }) {
   if (ct.startsWith("image/"))
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={item.url} alt={item.name} style={{ maxWidth: "100%" }} />
+      <img src={item.url} alt={item.name} style={{ maxWidth: "100%", maxHeight: "60vh",margin:"0 auto" }} />
     );
   if (ct === "application/pdf")
-    return <iframe src={item.url} style={{ width: "100%", height: "70vh", border: "none" }} />;
+    return <iframe src={item.url} style={{ width: "100%", height: "60vh", border: "none" }} />;
   if (ct.startsWith("video/"))
-    return <video src={item.url} controls style={{ width: "100%" }} />;
+    return <video src={item.url} controls style={{ width: "100%", maxHeight: "60vh" }} />;
   if (ct.startsWith("audio/"))
     return <audio src={item.url} controls style={{ width: "100%" }} />;
+  if (OFFICE_MIME.has(ct)) {
+    // 预签名 URL 带查询参数，必须整体编码后作为 src 传给微软查看器
+    const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+      item.url
+    )}`;
+    return (
+      <div>
+        <iframe
+          src={viewerUrl}
+          style={{ width: "100%", height: "60vh", border: "none" }}
+        />
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          由微软 Office Online 提供预览；若显示空白，通常是网络无法访问微软服务或文件过大，请点「下载」查看。
+        </Typography.Text>
+      </div>
+    );
+  }
   if (isText)
     return error ? (
       <Typography.Text type="danger">{error}</Typography.Text>
@@ -286,14 +314,15 @@ export default function FileExplorer() {
         rowKey="key"
         loading={loading}
         dataSource={items}
+        // auto：列宽按内容自适应；操作列不给 width，按钮排多宽列就多宽
+        tableLayout="auto"
         pagination={{ pageSize: 10, hideOnSinglePage: true }}
         columns={[
           {
             title: "文件名",
             dataIndex: "name",
-            ellipsis: true,
             render: (name: string) => (
-              <Typography.Text ellipsis={{ tooltip: name }} style={{ maxWidth: 320 }}>
+              <Typography.Text ellipsis={{ tooltip: name }} style={{ maxWidth: 150 }}>
                 {name}
               </Typography.Text>
             ),
@@ -309,15 +338,14 @@ export default function FileExplorer() {
           {
             title: "上传时间",
             dataIndex: "lastModified",
-            width: 180,
             render: (t: string | null) => (t ? new Date(t).toLocaleString() : "-"),
           },
           {
             title: "操作",
             key: "action",
-            width: 240,
+            // 不写 width：交给 table-layout: auto 按内容自适应
             render: (_, record) => (
-              <Space>
+              <Space size={4} wrap={false}>
                 <Button
                   type="link"
                   size="small"
@@ -325,7 +353,7 @@ export default function FileExplorer() {
                 >
                   预览
                 </Button>
-                <Button type="link" size="small" href={record.url} target="_blank">
+                <Button type="link" size="small" href={record.downloadUrl} target="_blank">
                   下载
                 </Button>
                 <Button
@@ -374,6 +402,9 @@ export default function FileExplorer() {
         open={previewItem !== null}
         footer={null}
         width={860}
+        centered
+        // 预览内容限高，超出部分在弹窗内部滚动，避免撑出视口
+        styles={{ body: { maxHeight: "70vh", overflow: "auto" } }}
         onCancel={() => setPreviewItem(null)}
         destroyOnHidden
       >

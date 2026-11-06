@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import AntdConfigProvider from "@/components/AntdConfigProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,11 +22,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AntdRegistry>{children}</AntdRegistry>
+        <AntdRegistry>
+          <AntdConfigProvider>{children}</AntdConfigProvider>
+        </AntdRegistry>
       </body>
     </html>
   );

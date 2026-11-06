@@ -49,11 +49,28 @@ export async function GET() {
         }
         if (uploader === "anonymous") uploader = "";
 
+        const contentType = head.ContentType ?? "application/octet-stream";
+        // 下载链接单独签名，并覆盖响应头让浏览器按原名保存
+        // （对象 Key 带时间戳前缀且中文被替换成下划线，直接用会得到乱码文件名）
+        const safeName = name.replace(/["\\\r\n]/g, "_");
+        const downloadUrl = await getSignedUrl(
+          s3Client,
+          new GetObjectCommand({
+            Bucket: BUCKET,
+            Key: o.Key!,
+            ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(
+              safeName
+            )}`,
+            ResponseContentType: contentType,
+          }),
+          { expiresIn: 3600 }
+        );
+
         return {
           key: o.Key!,
           name,
           uploader,
-          contentType: head.ContentType ?? "application/octet-stream",
+          contentType,
           size: o.Size ?? 0,
           lastModified: o.LastModified?.toISOString() ?? null,
           url: await getSignedUrl(
@@ -61,6 +78,7 @@ export async function GET() {
             new GetObjectCommand({ Bucket: BUCKET, Key: o.Key! }),
             { expiresIn: 3600 }
           ),
+          downloadUrl,
         };
       })
     );
