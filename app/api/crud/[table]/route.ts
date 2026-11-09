@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 // 允许访问的表及其列，列定义与 app/home/page.tsx 中的 Row 类型保持一致
 // 题库（problems）与提交记录（submissions）已拆分到独立路由 app/api/problems、app/api/submissions
@@ -45,6 +45,7 @@ export async function GET(
   if (!isTableKey(table)) {
     return NextResponse.json({ error: "未知数据表" }, { status: 404 });
   }
+  const supabase = getSupabase();
 
   const { data, error } = await supabase
     .from(table)
@@ -67,7 +68,7 @@ export async function POST(
   const row = sanitize(table, await req.json().catch(() => null));
   if (!row) return NextResponse.json({ error: "请求数据不合法" }, { status: 400 });
 
-  const { data, error } = await supabase.from(table).insert(row).select().single();
+  const { data, error } = await getSupabase().from(table).insert(row).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
@@ -88,7 +89,7 @@ export async function PATCH(
     return NextResponse.json({ error: "请求数据不合法" }, { status: 400 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from(table)
     .update(row)
     .eq("id", id)
@@ -110,7 +111,7 @@ export async function DELETE(
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 });
 
-  const { error } = await supabase.from(table).delete().eq("id", id);
+  const { error } = await getSupabase().from(table).delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

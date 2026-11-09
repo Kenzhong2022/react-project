@@ -17,4 +17,17 @@ async function createClient(): Promise<S3Client> {
   });
 }
 
-export const s3Client = await createClient();
+// 用惰性单例而不是模块顶层创建：Worker 运行时模块加载阶段拿不到请求级环境变量，
+// 构建期（CI 无 .env.local）也不应读取；首次调用时创建并缓存。
+let clientPromise: Promise<S3Client> | null = null;
+
+/**
+ * @description 获取全局唯一的 S3 客户端：首次调用时读取环境变量并创建，后续复用同一实例
+ * @returns S3Client 实例
+ */
+export function getS3Client(): Promise<S3Client> {
+  if (!clientPromise) {
+    clientPromise = createClient();
+  }
+  return clientPromise;
+}

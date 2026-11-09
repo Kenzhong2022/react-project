@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { s3Client } from "@/lib/s3";
+import { getS3Client } from "@/lib/s3";
 import {
   ListObjectsV2Command,
   GetObjectCommand,
@@ -58,6 +58,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: true }, { headers: CORS });
     }
 
+    const s3Client = await getS3Client();
     const head = await s3Client.send(
       new HeadObjectCommand({ Bucket: BUCKET, Key: key })
     );
@@ -99,6 +100,7 @@ export async function DELETE(request: Request) {
         { status: 400, headers: CORS }
       );
     }
+    const s3Client = await getS3Client();
     await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
     return NextResponse.json({ success: true }, { headers: CORS });
   } catch (e) {
@@ -113,6 +115,7 @@ export async function DELETE(request: Request) {
 
 export async function GET() {
   try {
+    const s3Client = await getS3Client();
     const res = await s3Client.send(
       new ListObjectsV2Command({ Bucket: BUCKET, Prefix: "audio/" })
     );

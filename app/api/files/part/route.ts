@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { s3Client } from "@/lib/s3";
+import { getS3Client } from "@/lib/s3";
 import { UploadPartCommand } from "@aws-sdk/client-s3";
 
 // 上传单个分片（每片 ≤ 16MB，前端按 8MB 切）
@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const s3Client = await getS3Client();
     const res = await s3Client.send(
       new UploadPartCommand({
         Bucket: BUCKET,

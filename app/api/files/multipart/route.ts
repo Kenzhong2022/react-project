@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { s3Client } from "@/lib/s3";
+import { getS3Client } from "@/lib/s3";
 import {
   CreateMultipartUploadCommand,
   CompleteMultipartUploadCommand,
@@ -23,6 +23,7 @@ type Body = {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Body;
+    const s3Client = await getS3Client();
 
     // 创建分片上传任务
     if (body.action === "create") {

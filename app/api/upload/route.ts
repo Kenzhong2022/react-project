@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { s3Client } from "@/lib/s3";
+import { getS3Client } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 // 允许本地 HTML 播放器跨域调用
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
   console.log(`[upload] client=${clientId} ip=${ip} key=${key} size=${file.size}`);
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  const s3Client = await getS3Client();
   await s3Client.send(
     new PutObjectCommand({
       Bucket: "music-audio", // Supabase Storage 桶名

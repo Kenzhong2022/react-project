@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 /**
  * @description Python 服务端（CodeBenchAgent FastAPI）地址：本地开发默认 8000 端口，部署时通过环境变量覆盖
  */
-const API_BASE = process.env.CODEBENCH_API_URL ?? "http://127.0.0.1:8000";
+// Worker 运行时模块加载阶段拿不到请求级环境变量，必须在请求时读取
+function apiBase(): string {
+  return process.env.CODEBENCH_API_URL ?? "http://127.0.0.1:8000";
+}
 
 /**
  * @description 难度可选值：与 problems 表的 difficulty 文本列一致
@@ -81,7 +84,7 @@ async function callPython(
   path: string,
   init?: RequestInit
 ): Promise<{ ok: boolean; status: number; body: unknown }> {
-  const res = await fetch(`${API_BASE}${path}`, { cache: "no-store", ...init });
+  const res = await fetch(`${apiBase()}${path}`, { cache: "no-store", ...init });
   const body = await res.json().catch(() => null);
   return { ok: res.ok, status: res.status, body };
 }

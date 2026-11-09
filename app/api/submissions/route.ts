@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 // 提交记录独立 API：字段与建表.md 的 submissions 表一一对应
 // problem_id 与 problems.id 为逻辑关联（不建物理外键）；id / created_at 由数据库维护，不接受写入
@@ -42,6 +42,7 @@ function sanitize(body: unknown): { row?: Record<string, unknown>; error?: strin
 }
 
 export async function GET() {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("submissions")
     .select("*")
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `缺少必填字段：${missing.join("、")}` }, { status: 400 });
   }
 
-  const { data, error: dbError } = await supabase
+  const { data, error: dbError } = await getSupabase()
     .from("submissions")
     .insert(row)
     .select()
@@ -82,7 +83,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "没有可更新的字段" }, { status: 400 });
   }
 
-  const { data, error: dbError } = await supabase
+  const { data, error: dbError } = await getSupabase()
     .from("submissions")
     .update(row)
     .eq("id", id)
@@ -96,7 +97,7 @@ export async function DELETE(req: Request) {
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 });
 
-  const { error } = await supabase.from("submissions").delete().eq("id", id);
+  const { error } = await getSupabase().from("submissions").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

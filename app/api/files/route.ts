@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { s3Client } from "@/lib/s3";
+import { getS3Client } from "@/lib/s3";
 import {
   ListObjectsV2Command,
   DeleteObjectCommand,
@@ -17,6 +17,7 @@ const CORS = { "Access-Control-Allow-Origin": "*" };
 // GET /api/files —— 列出 files/ 下所有对象并生成 1 小时下载链接
 export async function GET() {
   try {
+    const s3Client = await getS3Client();
     const res = await s3Client.send(
       new ListObjectsV2Command({ Bucket: BUCKET, Prefix: "files/" })
     );
@@ -120,6 +121,7 @@ export async function PATCH(request: Request) {
         { status: 400, headers: CORS }
       );
     }
+    const s3Client = await getS3Client();
 
     // 保留原时间戳前缀，替换文件名部分
     const prefixMatch = key.match(/^files\/(\d+-)/);
@@ -172,6 +174,7 @@ export async function DELETE(request: Request) {
         { status: 400, headers: CORS }
       );
     }
+    const s3Client = await getS3Client();
     await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
     return NextResponse.json({ success: true }, { headers: CORS });
   } catch (e) {

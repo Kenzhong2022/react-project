@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 /**
  * @description Python 服务端（CodeBenchAgent FastAPI）地址：本地开发默认 8000 端口，部署时通过环境变量覆盖
  */
-const API_BASE = process.env.CODEBENCH_API_URL ?? "http://127.0.0.1:8000";
+// Worker 运行时模块加载阶段拿不到请求级环境变量，必须在请求时读取
+function apiBase(): string {
+  return process.env.CODEBENCH_API_URL ?? "http://127.0.0.1:8000";
+}
 
 /**
  * @description 游标分页获取题目列表：转发 GET /api/problems/cursor，按 id 递增翻页（keyset 分页），返回轻量列表字段
@@ -20,7 +23,7 @@ export async function GET(req: Request): Promise<NextResponse> {
   const datasetName = params.get("dataset_name");
   if (datasetName) search.set("dataset_name", datasetName);
 
-  const res = await fetch(`${API_BASE}/api/problems/cursor?${search.toString()}`, {
+  const res = await fetch(`${apiBase()}/api/problems/cursor?${search.toString()}`, {
     cache: "no-store",
   });
   const body = await res.json().catch(() => null);
