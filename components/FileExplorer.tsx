@@ -39,13 +39,13 @@ type FileItem = {
 
 // 设备唯一标志：与音频上传同一套标识体系
 function getClientId(): string {
-  let id = localStorage.getItem("my-neon-app-client-id");
+  let id = localStorage.getItem("react-project-client-id");
   if (!id) {
     id =
       typeof crypto.randomUUID === "function"
         ? crypto.randomUUID()
         : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    localStorage.setItem("my-neon-app-client-id", id);
+    localStorage.setItem("react-project-client-id", id);
   }
   return id;
 }

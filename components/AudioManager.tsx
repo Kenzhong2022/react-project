@@ -14,13 +14,13 @@ type AudioItem = {
 // 设备唯一标志：首次访问生成并存 localStorage，用于标识上传者
 function getClientId(): string {
   if (typeof window === "undefined") return "anonymous";
-  let id = localStorage.getItem("my-neon-app-client-id");
+  let id = localStorage.getItem("react-project-client-id");
   if (!id) {
     id =
       typeof crypto.randomUUID === "function"
         ? crypto.randomUUID()
         : `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    localStorage.setItem("my-neon-app-client-id", id);
+    localStorage.setItem("react-project-client-id", id);
   }
   return id;
 }
