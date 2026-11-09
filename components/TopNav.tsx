@@ -43,7 +43,11 @@ function NavMenuItem({
           {title}
         </Typography.Title>
         {description && (
-          <Typography.Paragraph type="secondary" style={{ margin: 0 }}>
+          <Typography.Paragraph
+            type="secondary"
+            className="nav-popup-item-desc"
+            style={{ margin: 0 }}
+          >
             {description}
           </Typography.Paragraph>
         )}
@@ -172,6 +176,12 @@ export default function TopNav({
         }
         .nav-popup-item.active:hover {
           background: ${token.colorPrimaryBgHover};
+        }
+        /* 描述过长时自动换行，避免长单词/长串字符撑破弹出面板 */
+        .nav-popup-item-desc {
+          white-space: normal;
+          word-break: break-word;
+          overflow-wrap: anywhere;
         }
       `}</style>
       {/* 右侧操作区：图标按钮统一用 shape="circle" 的 Button */}

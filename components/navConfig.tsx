@@ -46,6 +46,18 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    key: "/problems",
+    label: "题目中心",
+    children: [
+      {
+        key: "/problems?tab=list",
+        label: "题目列表",
+        description: "游标分页浏览题库，按数据集筛选",
+        icon: <BookOutlined />,
+      },
+    ],
+  },
+  {
     key: "/files",
     label: "资源中心",
     children: [

@@ -3,29 +3,29 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Tag, Typography } from "antd";
 
-// 预览数据结构：test_cases 与建表.md 中定义的 JSON 数组一致
-export type PreviewTestCase = {
-  input?: string;
-  output?: string;
-  is_example?: boolean;
-  explanation?: string;
-};
-
+// 题库数据结构：与 CodeBenchAgent 服务端 problems 表字段一一对应
+// MBPP 等数据集的 test_cases 为断言字符串数组（如 "assert add(2,3)==5"）
 export type PreviewProblem = {
   id: string | number;
-  title?: string;
-  difficulty?: number;
-  description?: string;
-  test_cases?: PreviewTestCase[];
-  reference_code?: string;
-  tags?: string;
+  dataset_name?: string | null;
+  subset?: string | null;
+  title?: string | null;
+  prompt?: string | null;
+  difficulty?: string | null;
+  test_cases?: string[];
+  test_imports?: string[] | null;
+  reference_solution?: string | null;
 };
 
-const DIFFICULTY_META = [
-  { label: "简单", color: "green" },
-  { label: "中等", color: "orange" },
-  { label: "困难", color: "red" },
-];
+// 难度文本 -> 展示样式；未设置的题目降级为灰色标签
+const DIFFICULTY_META: Record<string, { label: string; color: string }> = {
+  简单: { label: "简单", color: "green" },
+  中等: { label: "中等", color: "orange" },
+  困难: { label: "困难", color: "red" },
+  easy: { label: "简单", color: "green" },
+  medium: { label: "中等", color: "orange" },
+  hard: { label: "困难", color: "red" },
+};
 
 // 行内代码样式
 function InlineCode({ children }: { children?: ReactNode }) {
@@ -71,20 +71,12 @@ function CodeChip({ children }: { children: ReactNode }) {
   );
 }
 
-// 题目预览：LeetCode 风格的左右布局——左侧题面（标题、难度、标签、描述、示例），右侧参考题解
-// 仅展示 is_example=true 的示例；隐藏评测点不在预览中呈现
+// 题目预览：LeetCode 风格的左右布局——左侧题面（标题、难度、数据集、描述、测试用例），右侧参考题解
 export default function ProblemPreview({ problem }: { problem: PreviewProblem }) {
-  const difficultyIndex =
-    Number(problem.difficulty) >= 0 && Number(problem.difficulty) < DIFFICULTY_META.length
-      ? Number(problem.difficulty)
-      : 0;
-  const difficulty = DIFFICULTY_META[difficultyIndex];
-  const tags = String(problem.tags ?? "")
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter((tag) => tag !== "");
-  const examples = (problem.test_cases ?? []).filter((caseItem) => caseItem.is_example);
-  const referenceCode = String(problem.reference_code ?? "");
+  const difficulty = DIFFICULTY_META[String(problem.difficulty ?? "").trim().toLowerCase()];
+  const dataset = [problem.dataset_name, problem.subset].filter(Boolean).join(" / ");
+  const testCases = problem.test_cases ?? [];
+  const referenceCode = String(problem.reference_solution ?? "");
 
   return (
     // 左右布局：左侧题面，右侧题解；窄屏时上下堆叠
@@ -92,54 +84,43 @@ export default function ProblemPreview({ problem }: { problem: PreviewProblem })
       {/* 左侧：题面 */}
       <div className="mx-auto w-full max-w-3xl px-8 py-10">
         <Typography.Title level={3} style={{ marginTop: 0, marginBottom: 16 }}>
-          {problem.title}
+          {problem.title || `题目 #${problem.id}`}
         </Typography.Title>
 
-        {/* 难度与知识点标签 */}
+        {/* 难度与数据集标签 */}
         <div className="flex flex-wrap items-center gap-2">
-          <Tag color={difficulty.color} style={{ marginInlineEnd: 0 }}>
-            {difficulty.label}
-          </Tag>
-          {tags.map((tag) => (
-            <Tag key={tag} style={{ marginInlineEnd: 0 }}>
-              {tag}
+          {difficulty ? (
+            <Tag color={difficulty.color} style={{ marginInlineEnd: 0 }}>
+              {difficulty.label}
             </Tag>
-          ))}
+          ) : (
+            <Tag style={{ marginInlineEnd: 0 }}>未设置难度</Tag>
+          )}
+          {dataset && (
+            <Tag style={{ marginInlineEnd: 0 }}>{dataset}</Tag>
+          )}
         </div>
 
         {/* 题目描述（Markdown） */}
         <div className="mt-6 text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {problem.description ?? ""}
+            {problem.prompt ?? ""}
           </ReactMarkdown>
         </div>
 
-        {/* 示例 */}
-        {examples.map((example, index) => (
-          <div key={index} className="mt-8">
-            <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-              示例 {index + 1}：
-            </div>
-            <div className="mt-3 flex flex-col gap-1.5 border-l-2 border-zinc-200 pl-4 text-[14px] leading-6 dark:border-zinc-700">
-              <div>
-                <span className="font-semibold">输入：</span>
-                <CodeChip>{example.input}</CodeChip>
-              </div>
-              <div>
-                <span className="font-semibold">输出：</span>
-                <CodeChip>{example.output}</CodeChip>
-              </div>
-              {example.explanation && (
-                <div className="whitespace-pre-wrap [&>p]:m-0">
-                  <span className="font-semibold">解释：</span>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                    {example.explanation}
-                  </ReactMarkdown>
+        {/* 测试用例（断言形式） */}
+        {testCases.length > 0 && (
+          <div className="mt-8">
+            <div className="font-semibold text-zinc-900 dark:text-zinc-100">测试用例：</div>
+            <div className="mt-3 flex flex-col gap-2 border-l-2 border-zinc-200 pl-4 dark:border-zinc-700">
+              {testCases.map((testCase, index) => (
+                <div key={index}>
+                  <CodeChip>{String(testCase)}</CodeChip>
                 </div>
-              )}
+              ))}
             </div>
           </div>
-        ))}
+        )}
       </div>
 
       {/* 右侧：参考题解（Agent 生成），固定宽度、独立滚动 */}

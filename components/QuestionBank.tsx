@@ -20,24 +20,29 @@ type Row = TableRow;
 const DIFFICULTY_LABELS = ["简单", "中等", "困难"];
 const DIFFICULTY_COLORS = ["green", "orange", "red"];
 
-// 表单字段：difficulty 用数字 0/1/2 存储，与数据库难度列一致
+// 表单字段：与 CodeBenchAgent 服务端 problems 表结构一致（difficulty 为文本，可为空）
 const FORM_FIELDS: CrudField[] = [
-  { name: "title", label: "题目标题" },
+  { name: "dataset_name", label: "数据集名称" },
+  { name: "subset", label: "数据子集", required: false },
+  { name: "title", label: "题目标题", required: false },
   {
     name: "difficulty",
     label: "难度",
     type: "select",
-    options: DIFFICULTY_LABELS.map((label, value) => ({ label, value })),
+    options: DIFFICULTY_LABELS.map((label) => ({ label, value: label })),
+    required: false,
     render: (value) => {
-      const level = Number(value);
-      const index = level >= 0 && level < DIFFICULTY_LABELS.length ? level : 0;
-      return <Tag color={DIFFICULTY_COLORS[index]}>{DIFFICULTY_LABELS[index]}</Tag>;
+      const index = DIFFICULTY_LABELS.indexOf(String(value));
+      return index >= 0 ? (
+        <Tag color={DIFFICULTY_COLORS[index]}>{DIFFICULTY_LABELS[index]}</Tag>
+      ) : (
+        <Tag>未设置</Tag>
+      );
     },
   },
-  { name: "description", label: "题目描述（Markdown）", type: "textarea" },
+  { name: "prompt", label: "题目描述（Markdown）", type: "textarea" },
   { name: "test_cases", label: "测试用例（JSON 数组）", type: "textarea" },
-  { name: "reference_code", label: "参考题解", type: "textarea", required: false },
-  { name: "tags", label: "知识点标签（逗号分隔）", required: false },
+  { name: "reference_solution", label: "参考题解", type: "textarea", required: false },
   {
     name: "created_at",
     label: "创建时间",
@@ -47,14 +52,14 @@ const FORM_FIELDS: CrudField[] = [
 ];
 
 const FILTER_FIELDS: FilterField[] = [
+  { name: "dataset_name", label: "数据集" },
   { name: "title", label: "题目标题" },
   {
     name: "difficulty",
     label: "难度",
     type: "select",
-    options: DIFFICULTY_LABELS.map((label, value) => ({ label, value: String(value) })),
+    options: DIFFICULTY_LABELS.map((label) => ({ label, value: label })),
   },
-  { name: "tags", label: "标签" },
   { name: "createdAt", label: "创建时间", type: "dateRange" },
 ];
 
@@ -63,9 +68,8 @@ function normalizeRow(row: Row): Row {
   return { ...row, test_cases: JSON.stringify(row.test_cases ?? []) };
 }
 
-// 把当前行数据暂存到 localStorage，供预览页在新标签页读取
+// 打开预览页，预览页按 id 从服务端拉取题库数据
 function openPreview(row: Row) {
-  window.localStorage.setItem(`problem-preview:${row.id}`, JSON.stringify(row));
   window.open(`/problems/preview?id=${row.id}`, "_blank");
 }
 
