@@ -47,10 +47,17 @@ export default function PageLayout({
         </Suspense>
 
         {/* 右侧：上下布局（顶栏 / 内容区 / 页脚） */}
-        <Layout>
+        <Layout style={{ maxHeight: "calc(100vh)" }}>
           {/* TopNav 读取 ?tab= 计算弹出面板高亮，需要 Suspense 边界；fallback 用同尺寸 Header 防止布局跳动 */}
-          <Suspense fallback={<Layout.Header style={{ background: colorBgContainer }} />}>
-            <TopNav collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+          <Suspense
+            fallback={
+              <Layout.Header style={{ background: colorBgContainer }} />
+            }
+          >
+            <TopNav
+              collapsed={collapsed}
+              onToggle={() => setCollapsed(!collapsed)}
+            />
           </Suspense>
 
           <Content
@@ -59,6 +66,8 @@ export default function PageLayout({
               padding: 24,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
+              flex: 1,
+              overflow: "auto",
             }}
           >
             {backHref ? (
@@ -72,20 +81,16 @@ export default function PageLayout({
                 返回列表
               </Button>
             ) : (
-              <Typography.Title level={4} style={{ marginTop: 0, marginBottom: 4 }}>
+              <Typography.Title
+                level={4}
+                style={{ marginTop: 0, marginBottom: 4 }}
+              >
                 {title}
               </Typography.Title>
             )}
             <Typography.Text type="secondary"> {description}</Typography.Text>
             <div style={{ marginTop: 16 }}>{children}</div>
           </Content>
-
-          <Footer style={{ textAlign: "center", background: "transparent" }}>
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              基于 Next.js 16 · React 19 · Ant Design 6 · Cloudflare Workers（OpenNext）
-              · Supabase Storage（S3 分片上传）· Neon Postgres 构建
-            </Typography.Text>
-          </Footer>
         </Layout>
       </Layout>
     </AntApp>

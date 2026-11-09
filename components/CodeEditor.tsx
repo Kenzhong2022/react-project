@@ -36,7 +36,7 @@ export default function CodeEditor({
 
   return (
     <div
-      className="overflow-hidden rounded-lg border border-zinc-700"
+      className="overflow-hidden rounded-lg border border-zinc-700 h-full"
       style={{ backgroundColor: "#282c34" }}
     >
       <CodeMirror

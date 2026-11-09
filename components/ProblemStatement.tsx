@@ -80,7 +80,7 @@ export default function ProblemStatement({ problem }: { problem: PreviewProblem 
   const testCases = problem.test_cases ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-8 py-10">
+    <div className="mx-auto w-full max-w-3xl px-4 py-4">
       <Typography.Title level={3} style={{ marginTop: 0, marginBottom: 16 }}>
         {problem.title || `题目 #${problem.id}`}
       </Typography.Title>
