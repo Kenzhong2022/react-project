@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import {
+  AppstoreOutlined,
   AudioOutlined,
   BookOutlined,
+  CodeOutlined,
   FileDoneOutlined,
   FilePdfOutlined,
   ShoppingOutlined,
@@ -54,6 +56,25 @@ export const NAV_GROUPS: NavGroup[] = [
         label: "题目列表",
         description: "游标分页浏览题库，按数据集筛选",
         icon: <BookOutlined />,
+      },
+    ],
+  },
+  {
+    key: "/practice",
+    label: "CodeAgent",
+    icon: <AppstoreOutlined />,
+    children: [
+      {
+        key: "/practice?tab=home",
+        label: "首页",
+        description: "CodeAgent 总览与快捷入口",
+        icon: <AppstoreOutlined />,
+      },
+      {
+        key: "/practice?tab=problems",
+        label: "练习",
+        description: "选择题目进入在线练习",
+        icon: <CodeOutlined />,
       },
     ],
   },

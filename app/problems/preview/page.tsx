@@ -3,7 +3,8 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Spin, Typography } from "antd";
-import ProblemPreview, { type PreviewProblem } from "@/components/ProblemPreview";
+import ProblemStatement, { type PreviewProblem } from "@/components/ProblemStatement";
+import ProblemSolution from "@/components/ProblemSolution";
 
 // 通过 /api/problems?id=xxx 按需拉取题库数据
 function PreviewSection() {
@@ -53,7 +54,18 @@ function PreviewSection() {
       </div>
     );
   }
-  return <ProblemPreview problem={problem} />;
+  // 左右布局：左侧题面，右侧参考题解；窄屏时上下堆叠
+  return (
+    <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950 lg:flex-row">
+      {/* 左侧：题面 */}
+      <ProblemStatement problem={problem} />
+
+      {/* 右侧：参考题解（Agent 生成），固定宽度、独立滚动 */}
+      <aside className="w-full shrink-0 border-t border-zinc-200 px-6 py-10 dark:border-zinc-800 lg:sticky lg:top-0 lg:h-screen lg:w-[400px] lg:overflow-y-auto lg:border-l lg:border-t-0">
+        <ProblemSolution referenceSolution={problem.reference_solution} />
+      </aside>
+    </div>
+  );
 }
 
 // 题目预览页：按 URL 中的 id 从服务端题库接口拉取数据

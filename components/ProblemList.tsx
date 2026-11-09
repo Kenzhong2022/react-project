@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { Alert, Button, Empty, List, Select, Space, Spin, Tag, Typography } from "antd";
+import { Alert, Button, Empty, List, Segmented, Select, Space, Spin, Tag, Typography } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 
 /**
@@ -39,6 +39,12 @@ const DATASET_OPTIONS = [
   { label: "custom", value: "custom" },
 ];
 
+// 语言分段控制器选项：练习时选择作答语言（评测语言，暂不影响列表数据）
+const LANGUAGE_OPTIONS = [
+  { label: "Python", value: "python" },
+  { label: "Java", value: "java" },
+];
+
 /**
  * @description 按游标拉取一页题目列表
  * @param nextCursor 下一页游标（首页传 null）
@@ -61,9 +67,23 @@ async function fetchPage(
 }
 
 /**
+ * @description 组件属性：itemHref 自定义条目跳转地址（默认预览页），actionLabel 自定义操作文案
+ */
+type ProblemListProps = {
+  itemHref?: (item: ProblemListItem) => string;
+  actionLabel?: string;
+  // 语言选中变化回调（可选）：父组件可用于联动展示
+  onLanguageChange?: (language: string) => void;
+};
+
+/**
  * @description 题目列表页内容：游标分页逐页加载，支持按数据集筛选，点击条目跳转预览页
  */
-export default function ProblemList() {
+export default function ProblemList({
+  itemHref,
+  actionLabel = "预览",
+  onLanguageChange,
+}: ProblemListProps) {
   const [items, setItems] = useState<ProblemListItem[]>([]);
   const [cursor, setCursor] = useState<string | number | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -73,6 +93,8 @@ export default function ProblemList() {
   const [error, setError] = useState<string | null>(null);
   // 手动重试计数：值变化触发重新拉取首页
   const [reloadTick, setReloadTick] = useState(0);
+  // 练习语言选择：Python / Java
+  const [language, setLanguage] = useState("python");
 
   // 首次加载与切换数据集时重置列表，重新从第一页拉取
   useEffect(() => {
@@ -142,8 +164,16 @@ export default function ProblemList() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 筛选区：按数据集筛选，切换后从第一页重新加载 */}
+      {/* 筛选区：语言分段控制 + 按数据集筛选，切换后从第一页重新加载 */}
       <Space wrap>
+        <Segmented
+          options={LANGUAGE_OPTIONS}
+          value={language}
+          onChange={(value) => {
+            setLanguage(value as string);
+            onLanguageChange?.(value as string);
+          }}
+        />
         <Select
           style={{ width: 160 }}
           placeholder="全部数据集"
@@ -163,8 +193,17 @@ export default function ProblemList() {
           renderItem={(item) => (
             <List.Item
               actions={[
-                <a key="preview" href={`/problems/preview?id=${item.id}`} target="_blank" rel="noreferrer">
-                  预览
+                <a
+                  key="open"
+                  href={
+                    itemHref
+                      ? itemHref(item)
+                      : `/problems/preview?id=${item.id}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {actionLabel}
                 </a>,
               ]}
             >
