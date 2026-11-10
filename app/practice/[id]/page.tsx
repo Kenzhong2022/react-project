@@ -207,7 +207,7 @@ export default function PracticeDetailPage() {
 
           {/* 右侧：上下 Splitter（编辑器 | 测试用例/结果面板） */}
           <Splitter.Panel min="40%" max="72%">
-            <Splitter layout="vertical">
+            <Splitter orientation="vertical">
               {/* 上：语言栏 + 代码编辑器 */}
               <Splitter.Panel defaultSize="58%" min="30%" max="80%">
                 <div className="flex h-full flex-col gap-2 pl-3 pb-3">
